@@ -13,45 +13,29 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-
-
 ## 1.1 Specifying the Data Analytic Question
+
+Help to identify which individuals are most likely to click on the ads posted.
 
 
 ## 1.2 Defining the Metric for Success
 
+This shall be achieved by coming up with facts on individuals who are most likely to click on the ads
 
 
 ## 1.3 Understanding the Context
 
+A Kenyan entrepreneur has created an online cryptography course and would want to advertise it on her blog. She currently targets audiences originating from various countries. In the past, she ran ads to advertise a related course on the same blog and collected data in the process.
+
 
 ## 1.4 Recording the Experimental Design
 
-
+Conducting data cleaning.
+Conducting univariate and bivariate analysis to come up with facts about the data picked. 
 
 ## 1.5 Data Relevance
 
-
+The data provided is relevant to the task.
 
 ## 2. Reading the Data
 ```{r}
@@ -104,7 +88,229 @@ str(advert_data)
 ```{r}
 # Checking for outliers
 #
+#install.packages("pacman")
+require(pacman)
+pacman::p_load(pacman,dplyr,GGally,ggplot2)
+
+library("dplyr")
+numeric_cols <- select_if(advert_data, is.numeric)
+
+#is.numeric(advert_data)
+head(numeric_cols)
+
+for (x in numeric_cols){
+  boxplot(x)
+}
+
 
 ```
+
+```{r}
+boxplot.stats(numeric_cols$Area.Income)$out
+
+```
+Dropping the outliers
+```{r}
+# removing the outliers
+#
+
+advert_data1 <- advert_data %>% filter(advert_data$Area.Income >= 20000)
+print(dim(advert_data1))
+boxplot(advert_data1$Area.Income)
+
+```
+```{r}
+# Checking for missing data
+#
+colSums(is.na(advert_data1))
+```
+There are no missing values in the dataset
+
+
+```{r}
+# Checking for duplicates
+#
+duplicates <- advert_data1[duplicated(advert_data1), ]
+duplicates
+```
+There are no duplicates in the dataset.
+
+## Exploratory Analysis
+
+### Univariate Analysis
+
+```{r}
+# checking the top of the dataset
+#
+head(advert_data1)
+```
+
+
+```{r}
+# Checking for the mean age
+#
+mean_age <- mean(advert_data1$Age)
+mean_age
+
+```
+The mean age of the individuals is 35.9834
+
+```{r}
+# Checking on the distribution of age
+#
+hist(advert_data1$Age, main="Distribution Of Individuals' Ages", xlab = "Age" )
+
+```
+
+
+The most individuals whose data was taken are between 25-40 years.
+```{r}
+# checking the average time people spend on the site
+#
+mean_time <- mean(advert_data1$Daily.Time.Spent.on.Site)
+mean_time
+
+```
+The average time spent on that site is 65.05808 minutes
+
+
+
+```{r}
+# Checking on the distribution of time spent in the site
+#
+hist(advert_data1$Daily.Time.Spent.on.Site, main="Distribution Of Time spent on the site", xlab = "Time(minutes)" )
+
+```
+
+
+
+Most people stayed on the blog for 65-85 minutes.
+
+```{r}
+# checking for the distribution of gender.
+#
+gender <- table(advert_data1$Male)
+barplot(gender, main = "Frequency of visits on the site considering gender", xlab = "Gender", ylab = "Frequency", decreasing = TRUE)
+
+```
+
+
+
+Most of the individuals who visited the blog/site were female.
+
+```{r}
+# Checking the average income of the individuals
+#
+mean_income <- mean(advert_data1$Area.Income)
+mean_income
+
+```
+The mean income of the individuals was ksh 55384.82
+
+
+```{r}
+# Checking the distribution of income
+#
+hist(advert_data1$Area.Income, main="Distribution Of Income of the individuals", xlab = "Income(Ksh)")
+
+```
+
+
+
+
+
+Most of the individuals are earning between ksh 50000-70000
+
+```{r}
+# Checking on the average daily internet usage
+#
+mean_internet_usage <- mean(advert_data1$Daily.Internet.Usage)
+mean_internet_usage
+
+```
+The average daily internet usage is 180.0282 Mbs.
+
+```{r}
+
+# Checking on the individuals who clicked on the ads
+#
+ads_click <- table(advert_data1$Clicked.on.Ad)
+barplot(ads_click, main = "Frequency of clicks on the ads", xlab = "Yes:1 or No:0", ylab = "Frequency", decreasing = TRUE)
+
+```
+
+
+
+
+
+
+Its almost a fair share of the individuals who clicked on the ads but those who did not were slightly more than those who did.
+
+#### Univariate Analysis Summary.
+1. The mean age of the individuals was say 36 years(35.9834 in fact).More to that, the age cluster of most individuals whose data was taken was between 25-40 years.
+2. The average time spent on that site is 65.05808 minutes and Most people stayed on the blog for around 65-85 minutes.
+3. Most of the individuals who visited the blog/site were female.
+4. The mean income of the individuals was ksh 55384.82. Moreover, most of the individuals are earning between ksh 50000-70000.
+5. The average daily internet usage is 180.0282 Mbs.
+6. Lastly, its almost a fair share of the individuals who clicked on the ads but those who did not were slightly more than those who did.
+
+### Bivariate Analysis
+
+```{r}
+head(advert_data1)
+
+
+```
+
+
+
+```{r}
+# Checking for relationship of age and income
+#
+ages <- advert_data1$Age
+income <- advert_data1$Area.Income
+
+cor(ages,income)
+plot(ages,income,main = "Scatterplot of Age Vs Income")
+
+```
+
+
+
+The correlation coefficient of income and age is -0.181831. Thus there is a very weak negative relationship between the two variables.
+
+```{r}
+# Checking for relationship of daily internet usage and income
+#
+internet_usage <- advert_data1$Daily.Internet.Usage
+income <- advert_data1$Area.Income
+
+cor(internet_usage,income)
+plot(internet_usage,income,main = "Scatterplot of Internet Usage Vs Income")
+
+```
+
+
+
+The correlation coefficient of income and internet usage is 0.3510049. Thus there is a weak positive relationship between the two variables.
+
+```{r}
+# Checking on the individuals who clicked on the ads based on gender
+#
+gender01 <- advert_data1$Male
+clicks01 <- advert_data1$Clicked.on.Ad
+# Male <- advert_data %>% filter(advert_data$Male == 1)
+# Female <- advert_data %>% filter(advert_data$Male == 0)
+# clicked <- advert_data %>% filter(advert_data$Clicked.on.Ad == 1)
+# not_clicked <- advert_data %>% filter(advert_data$Clicked.on.Ad == 0)
+
+cor(clicks01,income)
+cor(gender01,clicks01)
+
+```
+The correlation coefficient of income and clicks on the ads is -0.4694387. Thus there is a weak negative relationship between the two variables.
+The correlation coefficient of gender and clicks on the ads is -0.0408476. Thus there is a very weak negative relationship between the two variables
+
+
 
 
